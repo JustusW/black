@@ -133,6 +133,12 @@ async def handle(request: web.Request, executor: Executor) -> web.Response:
         req_bytes = await request.content.read()
         charset = request.charset if request.charset is not None else "utf8"
         req_str = req_bytes.decode(charset)
+        
+        req_str_a = [""]
+        if req_str.startswith("%"):
+            req_str_a = req_str.split("\n", 1)
+            req_str = req_str_a[1]
+
         then = datetime.utcnow()
 
         loop = asyncio.get_event_loop()
@@ -151,6 +157,9 @@ async def handle(request: web.Request, executor: Executor) -> web.Response:
                 executor,
                 partial(black.diff, req_str, formatted_str, src_name, dst_name),
             )
+            raise Exception("Not supported due to modification.")
+
+        formatted_str = req_str_a[0] + "\n" + formatted_str
 
         return web.Response(
             content_type=request.content_type,
